@@ -1,0 +1,18 @@
+Package: simqi
+Type: Package
+Title: Simulate Quantities of Interest from Regression Models
+Version: 0.1.0
+Depends: R (>= 3.5.0)
+Authors@R: person("Steve", "Miller",
+                  email = "steven.v.miller@gmail.com", 
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0000-0003-4072-6263"))
+Maintainer: Steve Miller <steven.v.miller@gmail.com>
+Description: This is an all-encompassing suite to facilitate the simulation of
+    so-called quantities of interest by way of a multivariate normal distribution
+    of the regression model's coefficients and variance-covariance matrix.
+License: GPL-2
+Encoding: UTF-8
+LazyData: true
+Imports:
+    stevemisc
