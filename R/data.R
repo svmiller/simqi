@@ -1,7 +1,7 @@
 #' @importFrom tibble tibble
 NULL
 
-#' A Sample of SOM Institute Data, 2019-2010
+#' A Sample of SOM Institute Data, 2019-2020
 #'
 #' This is a simple sample of the SOM (Society-Opinion-Media) data that is
 #' run by the University of Gothenburg. The sample comes from the cumulative data
