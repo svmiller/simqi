@@ -1,0 +1,39 @@
+---
+output: github_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "80%",
+  fig.align = "center",
+  warning = FALSE
+)
+```
+
+# Simulate Quantities of Interest from Regression Models
+
+```{r echo=FALSE, results="hide", message=FALSE}
+library("badger")
+```
+
+```{r, echo = FALSE, results='asis'}
+cat(
+	badge_cran_release("simqi", "green"),
+	badge_cran_download("simqi", "grand-total", "green"),
+	badge_cran_download("simqi", "last-month", "green"),
+	badge_cran_download("simqi", "last-week", "green")
+)
+```
+
+`{simqi}` allows researchers to simulate so-called "quantities of interest" from common regression models. This method of generating quantities of interest comes by of a simulation from the multivariate normal distribution, where the vector of means if the regression coefficients and the sigma is the variance-covariance matrix of the regression model.
+
+# Installation
+
+You can also install the development version of this package through the `{devtools}` package.
+
+```r
+devtools::install_github("svmiller/simqi")
+```
