@@ -3,7 +3,7 @@
 \docType{data}
 \name{som_sample}
 \alias{som_sample}
-\title{A Sample of SOM Institute Data, 2019-2010}
+\title{A Sample of SOM Institute Data, 2019-2020}
 \format{
 A data frame with 2841 observations on the following 14 variables.
 \describe{

@@ -4,7 +4,7 @@
 \alias{sim_qi}
 \title{Get simulations from a model object}
 \usage{
-sim_qi(mod, nsim = 1000, newdata)
+sim_qi(mod, nsim = 1000, newdata, original_scale = TRUE)
 }
 \arguments{
 \item{mod}{a model object}
@@ -13,6 +13,12 @@ sim_qi(mod, nsim = 1000, newdata)
 
 \item{newdata}{A data frame with a hypothetical prediction grid.
 If absent, defaults to the model frame.}
+
+\item{original_scale}{logical, defaults to TRUE. If TRUE, the ensuing
+simulations are returned on their original scale. If FALSE, the ensuing
+simulations are transformed to a more practical/intuitive quantity that for
+now is the simulated probability. This argument is ignored in the context of
+simulations on the linear model.}
 }
 \value{
 \code{sim_qi()()} returns a data frame (as a \code{tibble}) with the
@@ -22,6 +28,12 @@ simulation number.
 \description{
 \code{sim_qi()} is a function to simulate quantities of interest
 from a regression model
+}
+\details{
+For ordinal models, I recommend setting `original_scale` to be FALSE. The
+function, underneath the hood, is actually calculating things on the level of
+the probability. It's just transforming back to a logit or a probit, if that
+is what you say you want.
 }
 \examples{
 
