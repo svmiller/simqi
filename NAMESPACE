@@ -2,3 +2,9 @@ exportPattern("^[[:alpha:]]+")
 
 importFrom(stevemisc, smvrnorm)
 importFrom(tibble, as_tibble)
+importFrom(tibble, tibble)
+
+
+importFrom("methods", "is")
+importFrom("stats", "coef", "model.frame", "model.matrix", "plogis", "pnorm",
+           "qnorm", "rchisq", "terms", "vcov")
