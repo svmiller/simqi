@@ -23,7 +23,15 @@ simulations on the linear model.}
 \value{
 \code{sim_qi()()} returns a data frame (as a \code{tibble}) with the
 quantities of interest and identifying information about the particular
-simulation number.
+simulation number. For linear models, or simple generalized linear models
+where the dependent variable is either "there" or "not there", the quantity
+of interest returned is a single column (called `y`). For models where the
+underlying estimation of the dependent variable is, for lack of a better
+term, "multiple" (e.g. ordinal models with the basic proportional odds)
+assumption), the columns returned correspond with the number of distinct
+values of the outcome. For example, an ordinal model where there are five
+unique values of the dependent variable will return columns `y1`, `y2`, `y3`,
+`y4`, and `y5`.
 }
 \description{
 \code{sim_qi()} is a function to simulate quantities of interest
