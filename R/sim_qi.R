@@ -19,7 +19,7 @@
 #'
 #' @return
 #'
-#' \code{sim_qi()()} returns a data frame (as a \code{tibble}) with the
+#' \code{sim_qi()} returns a data frame (as a \code{tibble}) with the
 #' quantities of interest and identifying information about the particular
 #' simulation number. For linear models, or simple generalized linear models
 #' where the dependent variable is either "there" or "not there", the quantity
