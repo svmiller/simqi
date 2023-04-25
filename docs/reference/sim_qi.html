@@ -45,7 +45,13 @@ from a regression model</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sim_qi</span><span class="op">(</span><span class="va">mod</span>, nsim <span class="op">=</span> <span class="fl">1000</span>, <span class="va">newdata</span>, original_scale <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sim_qi</span><span class="op">(</span></span>
+<span>  <span class="va">mod</span>,</span>
+<span>  nsim <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  <span class="va">newdata</span>,</span>
+<span>  original_scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  return_newdata <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -70,6 +76,13 @@ simulations are transformed to a more practical/intuitive quantity that for
 now is the simulated probability. This argument is ignored in the context of
 simulations on the linear model.</p></dd>
 
+
+<dt>return_newdata</dt>
+<dd><p>logical, defaults to FALSE. If TRUE, the output returns
+additional columns corresponding with the inputs provided to <code>newdata</code>.
+This may facilitate easier transformation along with greater clarity as to
+what the simulations correspond.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -79,17 +92,27 @@ simulations on the linear model.</p></dd>
 quantities of interest and identifying information about the particular
 simulation number. For linear models, or simple generalized linear models
 where the dependent variable is either "there" or "not there", the quantity
-of interest returned is a single column (called `y`). For models where the
+of interest returned is a single column (called <code>y</code>). For models where the
 underlying estimation of the dependent variable is, for lack of a better
 term, "multiple" (e.g. ordinal models with the basic proportional odds)
 assumption), the columns returned correspond with the number of distinct
 values of the outcome. For example, an ordinal model where there are five
-unique values of the dependent variable will return columns `y1`, `y2`, `y3`,
-`y4`, and `y5`.</p>
+unique values of the dependent variable will return columns <code>y1</code>, <code>y2</code>, <code>y3</code>,
+<code>y4</code>, and <code>y5</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>For ordinal models, I recommend setting `original_scale` to be FALSE. The
+    <p>Specifying a variable in <code>newdata</code> with the exact same name as the
+dependent variable (e.g. <code>mpg</code> in the simple example provided in this
+documentation file) is necessary for matrix multiplication purposes. If you
+set <code>return_newdata</code> to <code>TRUE</code>, you should not interpret the column matching
+the name of the dependent variable as communicating the kind of information
+you want from this function. That particular column is just a simple
+placeholder you need for matrix multiplication. The information you want will
+always be in a column (or columns) named (or starting with) <code>y</code>.</p>
+<p>This function builds in an implicit assumption that your dependent variable
+in the regression model is not called <code>y</code>.</p>
+<p>For ordinal models, I recommend setting <code>original_scale</code> to be FALSE. The
 function, underneath the hood, is actually calculating things on the level of
 the probability. It's just transforming back to a logit or a probit, if that
 is what you say you want.</p>

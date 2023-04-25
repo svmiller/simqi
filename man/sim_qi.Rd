@@ -4,7 +4,13 @@
 \alias{sim_qi}
 \title{Get simulations from a model object}
 \usage{
-sim_qi(mod, nsim = 1000, newdata, original_scale = TRUE)
+sim_qi(
+  mod,
+  nsim = 1000,
+  newdata,
+  original_scale = TRUE,
+  return_newdata = FALSE
+)
 }
 \arguments{
 \item{mod}{a model object}
@@ -19,26 +25,43 @@ simulations are returned on their original scale. If FALSE, the ensuing
 simulations are transformed to a more practical/intuitive quantity that for
 now is the simulated probability. This argument is ignored in the context of
 simulations on the linear model.}
+
+\item{return_newdata}{logical, defaults to FALSE. If TRUE, the output returns
+additional columns corresponding with the inputs provided to \code{newdata}.
+This may facilitate easier transformation along with greater clarity as to
+what the simulations correspond.}
 }
 \value{
 \code{sim_qi()()} returns a data frame (as a \code{tibble}) with the
 quantities of interest and identifying information about the particular
 simulation number. For linear models, or simple generalized linear models
 where the dependent variable is either "there" or "not there", the quantity
-of interest returned is a single column (called `y`). For models where the
+of interest returned is a single column (called \code{y}). For models where the
 underlying estimation of the dependent variable is, for lack of a better
 term, "multiple" (e.g. ordinal models with the basic proportional odds)
 assumption), the columns returned correspond with the number of distinct
 values of the outcome. For example, an ordinal model where there are five
-unique values of the dependent variable will return columns `y1`, `y2`, `y3`,
-`y4`, and `y5`.
+unique values of the dependent variable will return columns \code{y1}, \code{y2}, \code{y3},
+\code{y4}, and \code{y5}.
 }
 \description{
 \code{sim_qi()} is a function to simulate quantities of interest
 from a regression model
 }
 \details{
-For ordinal models, I recommend setting `original_scale` to be FALSE. The
+Specifying a variable in \code{newdata} with the exact same name as the
+dependent variable (e.g. \code{mpg} in the simple example provided in this
+documentation file) is necessary for matrix multiplication purposes. If you
+set \code{return_newdata} to \code{TRUE}, you should not interpret the column matching
+the name of the dependent variable as communicating the kind of information
+you want from this function. That particular column is just a simple
+placeholder you need for matrix multiplication. The information you want will
+always be in a column (or columns) named (or starting with) \code{y}.
+
+This function builds in an implicit assumption that your dependent variable
+in the regression model is not called \code{y}.
+
+For ordinal models, I recommend setting \code{original_scale} to be FALSE. The
 function, underneath the hood, is actually calculating things on the level of
 the probability. It's just transforming back to a logit or a probit, if that
 is what you say you want.

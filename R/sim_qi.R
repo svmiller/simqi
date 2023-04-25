@@ -12,6 +12,10 @@
 #' simulations are transformed to a more practical/intuitive quantity that for
 #' now is the simulated probability. This argument is ignored in the context of
 #' simulations on the linear model.
+#' @param return_newdata logical, defaults to FALSE. If TRUE, the output returns
+#' additional columns corresponding with the inputs provided to \code{newdata}.
+#' This may facilitate easier transformation along with greater clarity as to
+#' what the simulations correspond.
 #'
 #' @return
 #'
@@ -29,11 +33,22 @@
 #'
 #' @details
 #'
+#' Specifying a variable in \code{newdata} with the exact same name as the
+#' dependent variable (e.g. `mpg` in the simple example provided in this
+#' documentation file) is necessary for matrix multiplication purposes. If you
+#' set `return_newdata` to `TRUE`, you should not interpret the column matching
+#' the name of the dependent variable as communicating the kind of information
+#' you want from this function. That particular column is just a simple
+#' placeholder you need for matrix multiplication. The information you want will
+#' always be in a column (or columns) named (or starting with) `y`.
+#'
+#' This function builds in an implicit assumption that your dependent variable
+#' in the regression model is not called `y`.
+#'
 #' For ordinal models, I recommend setting `original_scale` to be FALSE. The
 #' function, underneath the hood, is actually calculating things on the level of
 #' the probability. It's just transforming back to a logit or a probit, if that
 #' is what you say you want.
-#'
 #'
 #' @examples
 #'
@@ -43,11 +58,10 @@
 #'
 #' sim_qi(M1, 10)
 #'
-#'
 #' @export
 #'
 
-sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
+sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newdata = FALSE) {
     # if (!identical(class(mod), "lm")) {
     #     stop("Hold on a second.")
     # }
@@ -84,6 +98,14 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
 
             the_sims <- rbind(the_sims, hold_me)
             the_sims <- as_tibble(the_sims)
+
+        }
+
+        if(return_newdata == TRUE) {
+
+            nnn <- do.call(rbind, replicate(n = nrow(the_sims), expr = newdata,
+                                            simplify = FALSE))
+            the_sims <- cbind(the_sims, nnn)
 
         }
     }
@@ -127,6 +149,14 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
         } else if(original_scale == FALSE && the_link == "probit") {
 
             the_sims$y <- pnorm(the_sims$y)
+        }
+
+        if(return_newdata == TRUE) {
+
+            nnn <- do.call(rbind, replicate(n = nrow(the_sims), expr = newdata,
+                                            simplify = FALSE))
+            the_sims <- cbind(the_sims, nnn)
+
         }
     }
 
@@ -245,6 +275,12 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
         }
 
         as_tibble(data.frame(sim = sss$sim, ys)) -> the_sims
+
+        if(return_newdata == TRUE) {
+
+            the_sims <- as_tibble(cbind(the_sims, nnn))
+
+        }
 
     }
 

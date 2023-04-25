@@ -60,8 +60,8 @@ note of it.
 
 The political trust variable is a simple latent estimate derived from a graded
 response model of the items from the original data on trust in government
-(`aa10a`), trust in parliament (`aa10n`), trust in the political parties
-(`aa10q`), and trust in Swedish politicians (`ab12`). The first three items
+(\code{aa10a}), trust in parliament (\code{aa10n}), trust in the political parties
+(\code{aa10q}), and trust in Swedish politicians (\code{ab12}). The first three items
 were on 1-5 scales while the last one (about Swedish politicians) is on a 1-4
 scale. All items were reverse coded from their original scales and the user
 should interpret the ensuing latent estimate to be communicating higher
