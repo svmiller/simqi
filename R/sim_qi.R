@@ -105,7 +105,7 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
 
             nnn <- do.call(rbind, replicate(n = nrow(the_sims), expr = newdata,
                                             simplify = FALSE))
-            the_sims <- cbind(the_sims, nnn)
+            the_sims <- as_tibble(cbind(the_sims, nnn))
 
         }
     }
@@ -155,7 +155,7 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
 
             nnn <- do.call(rbind, replicate(n = nrow(the_sims), expr = newdata,
                                             simplify = FALSE))
-            the_sims <- cbind(the_sims, nnn)
+            the_sims <- as_tibble(cbind(the_sims, nnn))
 
         }
     }
