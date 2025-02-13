@@ -70,8 +70,23 @@ is what you say you want.
 
 set.seed(8675309)
 
-M1 <- lm(mpg ~ cyl + wt, mtcars)
+Data <- mtcars
+Data$region <- c("Japan", "Japan", "Japan",
+                 "USA", "USA", "USA", "USA",
+                 "Europe", "Europe", "Europe", "Europe",
+                 "Europe", "Europe", "Europe",
+                 "USA", "USA", "USA", "Europe",
+                 "Japan", "Japan", "Japan",
+                 "USA", "USA", "USA", "USA",
+                 "Europe", "Europe", "Europe",
+                 "USA", "Europe", "Europe", "Europe")
+
+M1 <- lm(mpg ~ hp + region, Data)
 
 sim_qi(M1, 10)
+
+newdat <- data.frame(mpg = 0, region = c("Europe", "Japan", "USA"), hp = 123)
+
+sim_qi(M1, nsim = 100, newdat, return_newdata = TRUE)
 
 }

@@ -54,18 +54,46 @@
 #'
 #' set.seed(8675309)
 #'
-#' M1 <- lm(mpg ~ cyl + wt, mtcars)
+#' Data <- mtcars
+#' Data$region <- c("Japan", "Japan", "Japan",
+#'                  "USA", "USA", "USA", "USA",
+#'                  "Europe", "Europe", "Europe", "Europe",
+#'                  "Europe", "Europe", "Europe",
+#'                  "USA", "USA", "USA", "Europe",
+#'                  "Japan", "Japan", "Japan",
+#'                  "USA", "USA", "USA", "USA",
+#'                  "Europe", "Europe", "Europe",
+#'                  "USA", "Europe", "Europe", "Europe")
+#'
+#' M1 <- lm(mpg ~ hp + region, Data)
 #'
 #' sim_qi(M1, 10)
 #'
+#' newdat <- data.frame(mpg = 0, region = c("Europe", "Japan", "USA"), hp = 123)
+#'
+#' sim_qi(M1, nsim = 100, newdat, return_newdata = TRUE)
+#'
+#' @importFrom stevemisc smvrnorm
+#' @importFrom methods is
+#' @importFrom tibble as_tibble tibble
+#' @importFrom stats coef model.frame model.matrix plogis pnorm qnorm rchisq terms vcov
 #' @export
 #'
+
+# sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newdata = FALSE, ...) {
+#     UseMethod("sim_qi")
+# }
+
+
 
 sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newdata = FALSE) {
     # if (!identical(class(mod), "lm")) {
     #     stop("Hold on a second.")
     # }
 
+
+
+    # class: lm -----
     if(identical(class(mod), "lm")) {
 
         if(original_scale == FALSE) {
@@ -111,6 +139,7 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
     }
 
 
+    # class: glm -----
     if(is(mod, "glm")) {
 
         the_link <- mod$family$link
@@ -160,6 +189,7 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
         }
     }
 
+    # class: clm -----
     if(is(mod, "clm")) {
 
         if(missing(newdata)) {
