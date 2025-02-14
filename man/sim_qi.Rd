@@ -22,8 +22,9 @@ If absent, defaults to the model frame.}
 
 \item{original_scale}{logical, defaults to TRUE. If TRUE, the ensuing
 simulations are returned on their original scale. If FALSE, the ensuing
-simulations are transformed to a more practical/intuitive quantity that for
-now is the simulated probability. This argument is ignored in the context of
+simulations are transformed to a more practical/intuitive quantity that is
+potentially more intuitive for the user (e.g. a probability for a logistic
+regression). This argument is ignored in the context of
 simulations on the linear model.}
 
 \item{return_newdata}{logical, defaults to FALSE. If TRUE, the output returns
@@ -38,7 +39,7 @@ simulation number. For linear models, or simple generalized linear models
 where the dependent variable is either "there" or "not there", the quantity
 of interest returned is a single column (called \code{y}). For models where the
 underlying estimation of the dependent variable is, for lack of a better
-term, "multiple" (e.g. ordinal models with the basic proportional odds)
+term, "multiple" (e.g. ordinal models with the basic proportional odds
 assumption), the columns returned correspond with the number of distinct
 values of the outcome. For example, an ordinal model where there are five
 unique values of the dependent variable will return columns \code{y1}, \code{y2}, \code{y3},
@@ -48,7 +49,21 @@ unique values of the dependent variable will return columns \code{y1}, \code{y2}
 \code{sim_qi()} is a function to simulate quantities of interest
 from a regression model
 }
-\details{
+\section{Supported Models}{
+\enumerate{
+\item Linear models produced by \code{lm()} in base R.
+\item Generalized linear models produced by \code{glm()}. Families (links) include:
+\itemize{
+\item Binomial (logit, probit)
+\item Poisson (log)
+}
+\item Cumulative link models produced by \pkg{ordinal} package.
+\itemize{
+\item Links: logit, probit
+}
+}
+\subsection{Other Details}{
+
 Specifying a variable in \code{newdata} with the exact same name as the
 dependent variable (e.g. \code{mpg} in the simple example provided in this
 documentation file) is necessary for matrix multiplication purposes. If you
@@ -65,7 +80,12 @@ For ordinal models, I recommend setting \code{original_scale} to be FALSE. The
 function, underneath the hood, is actually calculating things on the level of
 the probability. It's just transforming back to a logit or a probit, if that
 is what you say you want.
+
+When \code{original_scale} is \code{TRUE} for Poisson models, the quantity returned is
+a logged lambda. When \code{FALSE}, this quantity is exponentiated.
 }
+}
+
 \examples{
 
 set.seed(8675309)

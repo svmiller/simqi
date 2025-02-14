@@ -7,7 +7,7 @@ Authors@R: person("Steve", "Miller",
                   email = "steven.v.miller@gmail.com", 
                   role = c("aut", "cre"),
                   comment = c(ORCID = "0000-0003-4072-6263"))
-Maintainer: Steve Miller <steven.v.miller@gmail.com>
+Maintainer: Steve Miller <steve@svmiller.com>
 Description: This is an all-encompassing suite to facilitate the simulation of
     so-called quantities of interest by way of a multivariate normal distribution
     of the regression model's coefficients and variance-covariance matrix.

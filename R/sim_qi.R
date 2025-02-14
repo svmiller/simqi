@@ -9,8 +9,9 @@
 #' If absent, defaults to the model frame.
 #' @param original_scale logical, defaults to TRUE. If TRUE, the ensuing
 #' simulations are returned on their original scale. If FALSE, the ensuing
-#' simulations are transformed to a more practical/intuitive quantity that for
-#' now is the simulated probability. This argument is ignored in the context of
+#' simulations are transformed to a more practical/intuitive quantity that is
+#' potentially more intuitive for the user (e.g. a probability for a logistic
+#' regression). This argument is ignored in the context of
 #' simulations on the linear model.
 #' @param return_newdata logical, defaults to FALSE. If TRUE, the output returns
 #' additional columns corresponding with the inputs provided to \code{newdata}.
@@ -25,7 +26,7 @@
 #' where the dependent variable is either "there" or "not there", the quantity
 #' of interest returned is a single column (called `y`). For models where the
 #' underlying estimation of the dependent variable is, for lack of a better
-#' term, "multiple" (e.g. ordinal models with the basic proportional odds)
+#' term, "multiple" (e.g. ordinal models with the basic proportional odds
 #' assumption), the columns returned correspond with the number of distinct
 #' values of the outcome. For example, an ordinal model where there are five
 #' unique values of the dependent variable will return columns `y1`, `y2`, `y3`,
@@ -33,7 +34,18 @@
 #'
 #' @details
 #'
-#' Specifying a variable in \code{newdata} with the exact same name as the
+#' # Supported Models
+#'
+#' 1. Linear models produced by `lm()` in base R.
+#' 2. Generalized linear models produced by `glm()`. Families (links) include:
+#'      - Binomial (logit, probit)
+#'      - Poisson (log)
+#' 3. Cumulative link models produced by \pkg{ordinal} package.
+#'      - Links: logit, probit
+#'
+#' ## Other Details
+#'
+#' Specifying a variable in `newdata` with the exact same name as the
 #' dependent variable (e.g. `mpg` in the simple example provided in this
 #' documentation file) is necessary for matrix multiplication purposes. If you
 #' set `return_newdata` to `TRUE`, you should not interpret the column matching
@@ -49,6 +61,9 @@
 #' function, underneath the hood, is actually calculating things on the level of
 #' the probability. It's just transforming back to a logit or a probit, if that
 #' is what you say you want.
+#'
+#' When `original_scale` is `TRUE` for Poisson models, the quantity returned is
+#' a logged lambda. When `FALSE`, this quantity is exponentiated.
 #'
 #' @examples
 #'
@@ -117,7 +132,7 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
 
     if(return_newdata == TRUE) {
 
-        nnn <- do.call(rbind, replicate(n = nrow(the_sims), expr = newdata,
+        nnn <- do.call(rbind, replicate(n = nsim, expr = newdata,
                                         simplify = FALSE))
         the_sims <- as_tibble(cbind(the_sims, nnn))
 
