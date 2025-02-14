@@ -1,5 +1,4 @@
 #' @keywords internal
-#' @export
 #' @noRd
 
 .sim_qi.glm <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {

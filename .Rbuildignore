@@ -7,3 +7,4 @@
 ^README\.Rmd$
 ^dross$
 ^CRAN-SUBMISSION$
+^cran-comments\.md$
