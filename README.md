@@ -6,6 +6,8 @@
 [![](http://cranlogs.r-pkg.org/badges/last-month/simqi?color=green)](https://cran.r-project.org/package=simqi)
 [![](http://cranlogs.r-pkg.org/badges/last-week/simqi?color=green)](https://cran.r-project.org/package=simqi)
 
+<img src="http://svmiller.com/images/simqi-hexlogo.png" alt="My simqi  hexlogo" align="right" width="200" style="padding: 0 15px; float: right;"/>
+
 `{simqi}` allows researchers to simulate so-called “quantities of
 interest” from common regression models. This method of generating
 quantities of interest comes by of a simulation from the multivariate
