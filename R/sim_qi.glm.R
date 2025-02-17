@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @noRd
 
-.sim_qi.glm <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
+.sim_qi.glm <- function(mod, nsim = 1000, newdata, original_scale = TRUE, vcov = NULL) {
 
 
     fam <- mod$family$family
@@ -25,7 +25,15 @@
         }
     }
 
-    smvrnorm(nsim, coef(mod), vcov(mod)) -> sim_params
+    # If you have a custom vcov, declare it now... ---
+
+    if(is.null(vcov)) {
+        svcov <- vcov(mod)
+    } else {
+        svcov <- vcov
+    }
+
+    smvrnorm(nsim, coef(mod), svcov) -> sim_params
 
     # if(missing(newdata)) {
     #     newdata <- model.frame(mod)

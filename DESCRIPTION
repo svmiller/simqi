@@ -1,7 +1,7 @@
 Package: simqi
 Type: Package
 Title: Simulate Quantities of Interest from Regression Models
-Version: 0.1.0
+Version: 0.1.9
 Depends: R (>= 3.5.0)
 Authors@R: person("Steve", "Miller",
                   email = "steve@svmiller.com", 

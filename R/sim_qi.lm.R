@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @noRd
 
-.sim_qi.lm <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
+.sim_qi.lm <- function(mod, nsim = 1000, newdata, original_scale = TRUE, vcov = NULL) {
 
     # Assorted stops and warnings ----
     if(original_scale == FALSE) {
@@ -10,6 +10,7 @@
 
     # Fill in newdata  ----
     dv <- all.vars(mod$call)[1]
+
     if(missing(newdata)) {
         newdata <- model.frame(mod)
     } else { # newdata is supplied, but I need to make sure the DV is there.
@@ -22,12 +23,20 @@
         }
     }
 
+    # If you have a custom vcov, declare it now... ---
+
+    if(is.null(vcov)) {
+        svcov <- vcov(mod)
+    } else {
+        svcov <- vcov
+    }
+
 siggies <- summary(mod)$sigma
 nobs <- summary(mod)$df[1] + summary(mod)$df[2]
 k <- summary(mod)$df[1]
 
 siggies*sqrt((nobs-k)/rchisq(nsim,nobs-k))
-list(a = smvrnorm(nsim, coef(mod), vcov(mod)),
+list(a = smvrnorm(nsim, coef(mod), svcov),
      b = siggies*sqrt((nobs-k)/rchisq(nsim,nobs-k))) -> sim_params
 
 

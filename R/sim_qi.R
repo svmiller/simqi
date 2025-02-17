@@ -17,6 +17,10 @@
 #' additional columns corresponding with the inputs provided to \code{newdata}.
 #' This may facilitate easier transformation along with greater clarity as to
 #' what the simulations correspond.
+#' @param vcov a manual variance-covariance matrix to supply to the simulation
+#' process. Use with caution, and if you did some kind of on-the-fly standard
+#' error adjustment in your regression model to make your results "robust". If
+#' nothing is supplied, the model's default variance-covariance matrix is used.
 #'
 #' @return
 #'
@@ -76,12 +80,20 @@
 #'
 #' Specifying a variable in `newdata` with the exact same name as the
 #' dependent variable (e.g. `mpg` in the simple example provided in this
-#' documentation file) is necessary for matrix multiplication purposes. If you
-#' set `return_newdata` to `TRUE`, you should not interpret the column matching
-#' the name of the dependent variable as communicating the kind of information
-#' you want from this function. That particular column is just a simple
-#' placeholder you need for matrix multiplication. The information you want will
-#' always be in a column (or columns) named (or starting with) `y`.
+#' documentation file) is necessary for matrix multiplication purposes. The
+#' function will do that for you if you have not done it yourself. It'll be set
+#' by default to 0. It does not (should not?) matter for the simulations.
+#'
+#' If you set `return_newdata` to `TRUE`, you should not interpret the column
+#' matching the name of the dependent variable as communicating the kind of
+#' information you want from this function. That particular column is just a
+#' simple placeholder you need for matrix multiplication. The information you
+#' want will always be in a column (or columns) named (or starting with) `y`.
+#'
+#' I do not advise setting `return_newdata` to `TRUE` without providing a data
+#' frame in `newdata` that corresponds with a hypothetical prediction grid. If
+#' nothing is supplied in `newdata`, `model.frame()` is called and the
+#' simulations are run on the data that inform the model itself.
 #'
 #' This function builds in an implicit assumption that your dependent variable
 #' in the regression model is not called `y`.
@@ -126,23 +138,19 @@
 # sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newdata = FALSE, ...) {
 #     UseMethod("sim_qi")
 # }
+# I may want to do it this way down the road if I can do even more with this.
 
 
-
-sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newdata = FALSE) {
+sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newdata = FALSE, vcov = NULL) {
     # if (!identical(class(mod), "lm")) {
     #     stop("Hold on a second.")
-    # }
-
-    # if(missing(newdata)) {
-    #     newdata <- model.frame(mod)
     # }
 
 
     # class: lm -----
     if(identical(class(mod), "lm")) {
 
-        the_sims <- .sim_qi.lm(mod, nsim, newdata, original_scale)
+        the_sims <- .sim_qi.lm(mod, nsim, newdata, original_scale, vcov)
 
     }
 
@@ -150,7 +158,7 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
     # class: glm -----
     if(is(mod, "glm")) {
 
-        the_sims <- .sim_qi.glm(mod, nsim, newdata, original_scale)
+        the_sims <- .sim_qi.glm(mod, nsim, newdata, original_scale, vcov)
     }
 
 
@@ -159,6 +167,10 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
 
         the_sims <- .sim_qi.clm(mod, nsim, newdata, original_scale)
 
+    }
+
+    if(missing(newdata)) {
+        newdata <- model.frame(mod)
     }
 
     if(return_newdata == TRUE) {
