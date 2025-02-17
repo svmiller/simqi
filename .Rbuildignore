@@ -9,3 +9,5 @@
 ^CRAN-SUBMISSION$
 ^cran-comments\.md$
 ^CRAN-RELEASE$
+vignettes/
+vignettes

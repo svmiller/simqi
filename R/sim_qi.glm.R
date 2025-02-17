@@ -7,21 +7,29 @@
     fam <- mod$family$family
     the_link <- mod$family$link
 
-
-    # if(!(the_link %in% c("logit", "probit"))) {
-    #
-    #     stop("For now, this function works on just GLMs with a link of either probit or logit.")
-    # }
-
     if(!(fam %in% c("binomial", "poisson"))) {
-        stop("For now, this function assumes either binomial (probit, logit) or poisson.")
+        stop("This function currently supports glm() functions where the family is binomial (logit, probit) or poisson (log). Feel free to raise an issue on the project's Github to extend this function forward.")
+    }
+
+    # Fill in newdata  ----
+    dv <- all.vars(mod$call)[1]
+    if(missing(newdata)) {
+        newdata <- model.frame(mod)
+    } else { # newdata is supplied, but I need to make sure the DV is there.
+        stopifnot(is.data.frame(newdata))
+
+        if(!(dv %in% colnames(newdata))) {
+
+            newdata[[dv]] <- rep(0, nrow(newdata))
+
+        }
     }
 
     smvrnorm(nsim, coef(mod), vcov(mod)) -> sim_params
 
-    if(missing(newdata)) {
-        newdata <- model.frame(mod)
-    }
+    # if(missing(newdata)) {
+    #     newdata <- model.frame(mod)
+    # }
 
     modmat <- model.matrix(terms(mod), newdata)
 

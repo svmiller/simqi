@@ -43,6 +43,35 @@
 #' 3. Cumulative link models produced by \pkg{ordinal} package.
 #'      - Links: logit, probit
 #'
+#' ## What `original_scale` Does in This Function
+#'
+#' `original_scale` defaults to TRUE in this function. When TRUE, the simulated
+#' quantity that's returned is a quantity on its "original scale." Understanding
+#' what exactly that means requires some knowledge about the model in question
+#' and what exactly the model is estimating on your behalf. In the simple linear
+#' model produced by the `lm()` function in base R, this is straightforward (and,
+#' thus, this argument does nothing for that model). The quantity returned is
+#' the estimated value of the dependent variable. However, models with some kind
+#' of link function return fitted values on some particular scale that might not
+#' be so user-friendly (e.g. a probit index, or a natural logged odds). However,
+#' that is the "original scale" on which the fitted values are returned. This
+#' summary table may help you better understand what this argument does with
+#' respect to what you want.
+#'
+#' | *Model Function* | *Family (Link)* | *original_scale = TRUE* | *original_scale = FALSE* |
+#' |:----------------:|:------:|:-----------------------:|:------------------------:|
+#' | `lm()` | NA | NA (Estimated value of *y*) | NA (Estimated value of *y*) |
+#' | `glm()`| binomial(link='logit') | natural logged odds of *y* = 1 | probability of *y* = 1 |
+#' | `glm()`| binomial(link='probit') | probit index of *y* = 1 | probability of *y* = 1 |
+#' | `glm()`| poisson(link='log') | logged lambda | lambda |
+#' | `clm()`| link = 'logit' | natural logged odds of *y* = value *j* | probability of *y* = value *j* |
+#' | `clm()`| link = 'probit' | probit index of *y* = value *j* | probability of *y* = value *j* |
+#'
+#' For ordinal models, I recommend setting `original_scale` to be FALSE. The
+#' function, underneath the hood, is actually calculating things on the level of
+#' the probability. It's just transforming back to a natural logged odds or a
+#' probit index, if that is what you say you want.
+#'
 #' ## Other Details
 #'
 #' Specifying a variable in `newdata` with the exact same name as the
@@ -57,13 +86,12 @@
 #' This function builds in an implicit assumption that your dependent variable
 #' in the regression model is not called `y`.
 #'
-#' For ordinal models, I recommend setting `original_scale` to be FALSE. The
-#' function, underneath the hood, is actually calculating things on the level of
-#' the probability. It's just transforming back to a logit or a probit, if that
-#' is what you say you want.
-#'
-#' When `original_scale` is `TRUE` for Poisson models, the quantity returned is
-#' a logged lambda. When `FALSE`, this quantity is exponentiated.
+#' Factors (so-called "fixed effects") behave curiously in this function. For
+#' just one factor variable in the model, the prediction grid you create must, at
+#' a minimum, have the default/baseline category as the value for the factor in
+#' question. For the presence of multiple factors, it seems like you need all
+#' possible combinations of them (even if you don't want them). Future updates
+#' will try to better understand this behavior.
 #'
 #' @examples
 #'
@@ -106,6 +134,9 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
     #     stop("Hold on a second.")
     # }
 
+    # if(missing(newdata)) {
+    #     newdata <- model.frame(mod)
+    # }
 
 
     # class: lm -----

@@ -62,6 +62,36 @@ from a regression model
 \item Links: logit, probit
 }
 }
+\subsection{What \code{original_scale} Does in This Function}{
+
+\code{original_scale} defaults to TRUE in this function. When TRUE, the simulated
+quantity that's returned is a quantity on its "original scale." Understanding
+what exactly that means requires some knowledge about the model in question
+and what exactly the model is estimating on your behalf. In the simple linear
+model produced by the \code{lm()} function in base R, this is straightforward (and,
+thus, this argument does nothing for that model). The quantity returned is
+the estimated value of the dependent variable. However, models with some kind
+of link function return fitted values on some particular scale that might not
+be so user-friendly (e.g. a probit index, or a natural logged odds). However,
+that is the "original scale" on which the fitted values are returned. This
+summary table may help you better understand what this argument does with
+respect to what you want.\tabular{cccc}{
+   \emph{Model Function} \tab \emph{Family (Link)} \tab \emph{original_scale = TRUE} \tab \emph{original_scale = FALSE} \cr
+   \code{lm()} \tab NA \tab NA (Estimated value of \emph{y}) \tab NA (Estimated value of \emph{y}) \cr
+   \code{glm()} \tab binomial(link='logit') \tab natural logged odds of \emph{y} = 1 \tab probability of \emph{y} = 1 \cr
+   \code{glm()} \tab binomial(link='probit') \tab probit index of \emph{y} = 1 \tab probability of \emph{y} = 1 \cr
+   \code{glm()} \tab poisson(link='log') \tab logged lambda \tab lambda \cr
+   \code{clm()} \tab link = 'logit' \tab natural logged odds of \emph{y} = value \emph{j} \tab probability of \emph{y} = value \emph{j} \cr
+   \code{clm()} \tab link = 'probit' \tab probit index of \emph{y} = value \emph{j} \tab probability of \emph{y} = value \emph{j} \cr
+}
+
+
+For ordinal models, I recommend setting \code{original_scale} to be FALSE. The
+function, underneath the hood, is actually calculating things on the level of
+the probability. It's just transforming back to a natural logged odds or a
+probit index, if that is what you say you want.
+}
+
 \subsection{Other Details}{
 
 Specifying a variable in \code{newdata} with the exact same name as the
@@ -76,13 +106,12 @@ always be in a column (or columns) named (or starting with) \code{y}.
 This function builds in an implicit assumption that your dependent variable
 in the regression model is not called \code{y}.
 
-For ordinal models, I recommend setting \code{original_scale} to be FALSE. The
-function, underneath the hood, is actually calculating things on the level of
-the probability. It's just transforming back to a logit or a probit, if that
-is what you say you want.
-
-When \code{original_scale} is \code{TRUE} for Poisson models, the quantity returned is
-a logged lambda. When \code{FALSE}, this quantity is exponentiated.
+Factors (so-called "fixed effects") behave curiously in this function. For
+just one factor variable in the model, the prediction grid you create must, at
+a minimum, have the default/baseline category as the value for the factor in
+question. For the presence of multiple factors, it seems like you need all
+possible combinations of them (even if you don't want them). Future updates
+will try to better understand this behavior.
 }
 }
 

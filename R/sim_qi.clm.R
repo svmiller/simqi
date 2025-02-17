@@ -1,125 +1,93 @@
 #' @keywords internal
 #' @noRd
+#'
 
 .sim_qi.clm <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
 
+    # Basic stops, for now ----
 
+    if(!(clmlink %in% c("logit", "probit"))) {
+
+        stop("For now, this function works on just ordinal models produced in the clm() function with a link of either probit or logit.")
+    }
+
+    if("nom.terms" %in% names(mod)) {
+        stop("This function currently does not support nominal effects specified in this formula. Feel free to raise an issue on the project's Github if you can do this for me.")
+    }
+
+    # Extract some information from the model first. ----
+    y_levs <- mod$y.levels
+    ylabs <- paste0("y", y_levs)
+
+    clmlink <-  mod$info$link
+    dv <- all.vars(mod$call$formula)[1]
+
+    # Fill in newdata  ----
     if(missing(newdata)) {
         newdata <- model.frame(mod)
+    } else { # newdata is supplied, but I need to make sure the DV is there.
+
+        stopifnot(is.data.frame(newdata))
+
+        if(!(dv %in% colnames(newdata))) {
+
+            newdata[[dv]] <- rep(0, nrow(newdata))
+
+        }
+
+
     }
 
-    the_link <- mod$info$link
-
-    if(!(the_link %in% c("logit", "probit"))) {
-
-        stop("For now, this function works on just ordinal models with a link of either probit or logit.")
-    }
+    modmat <- model.matrix(terms(mod), newdata)
+    modmat <- modmat[, !grepl("Intercept", colnames(modmat))] # remove intercept from thingie
 
 
-    smvrnorm(nsim, coef(mod), vcov(mod)) -> simmies
-    simmies <- as.data.frame(simmies)
+    # Simulate the important stuff ----
+    Sims <- smvrnorm(nsim, coef(mod), vcov(mod))
 
-    simmies$sim <- seq(1:nrow(simmies))
+    cnSims <- colnames(Sims)
+    simA <- Sims[, grepl("\\|", cnSims)]
+    simB <- Sims[, !grepl("\\|", cnSims)]
 
-    # This is going to 1) replicate the simmies the number of times corresponding
-    #  with the number of rows there are in newdata. The do.call() just rbinds them.
 
-    sss <- do.call(rbind, replicate(n = nrow(newdata), expr = simmies,
+    data.frame(matrix(nrow = 0, ncol = length(ylabs)+1,
+                      dimnames = list(NULL, c("sim", ylabs)))) -> output
+
+    for (i in (1:nsim)) {
+
+        xb <- modmat %*% simB[i,]
+        alphas <- do.call(rbind,
+                          replicate(n = length(xb),
+                                    expr = simA[i, ],
                                     simplify = FALSE))
 
-    # This just orders them for my own sanity.
-    sss[order(sss$sim),] -> sss
 
-    # Now, we're going to do the same that we did with simmies, this time with the
-    #  newdata. We're just going to replicate them the number of times corresponding
-    #  with the number of simulations we asked for (nsim)
-    nnn <- do.call(rbind, replicate(n = nsim, expr = newdata, simplify = FALSE))
+        data.frame(matrix(ncol = length(ylabs),
+                          nrow = length(xb),
+                          dimnames=list(NULL, ylabs))) -> ys
 
-    # This is a fairly complicated operation to do a simple thing. To clarify:
-    #  - Using sss, we're going to grab the column names with a "|" in them, and
-    #    split by the "|".
-    #  - Then, we're going to collapse them to a character vector (unlist), get just
-    #    the unique values (unique), and convert them to a numeric.
-    #  - Then, we'll just add an element to it that is the max of it, plus one.
-    #    This identifies all unique values of the DV.
-    ## x <- as.numeric(unique(unlist(strsplit(grep("\\|", colnames(sss), value=TRUE), split="\\|"))))
-    ## x <- c(x, max(x)+1)
-    # Alternatively...
-    y_levs <- mod$y.levels
+        aaa <- sweep(alphas, 1, xb, "-")
 
-    # find intersection (i.e. just the stuff that we'd want for xb)
-    col_intersection <- intersect(colnames(nnn), colnames(sss))
-    # col_intersection
+        ys[1] <- plogis(aaa[, 1])
 
-    # sss$xb <- rowSums(mapply(`*`, nnn[, col_intersection],
-    #                          simmies[, col_intersection]))
+        ncol_min1 <- ncol(aaa)
 
-    # create an xb that is the simple multiplication of the intersections.
-    # This has the effect of multiplying our "set" values in newdata by the
-    # simulated coefficients.
-    xb <- rowSums(mapply(`*`, nnn[, col_intersection],
-                         simmies[, col_intersection]))
+        for(j in 2:ncol_min1) {
+            ys[j] <- plogis(aaa[, j]) - plogis(aaa[, j-1])
 
+        }
 
-    # Here's what this is going to do, which is the base R equivalent of a
-    #  mutate_at(). We're going to create a custom function (funcy) that's just
-    #  going to subtract the xbs from the thresholds. "Subbies" is going to take
-    #  some of the code that I commented out above, simplifying identifying which
-    #  columns in simmies have those thresholds. Then, apply() is going to take
-    #  the sss column (matching the dimensions that will ultimately come) and apply
-    #  the function. The 2 you see applies to the margin argument, indicating you
-    #  you should apply this to the column.
+        ys[ncol(ys)] <- 1 - rowSums(ys[, 1:ncol(ys)-1])
+        ys$sim <- i
 
-    if(the_link == "logit") {
+        output <- rbind(output, ys)
+        output <- as_tibble(output)
 
-        funcy <- function(x) {plogis(x - xb)}
-
-    } else if (the_link == "probit"){
-
-        funcy <- function(x) {pnorm(x - xb)}
-    }
-
-
-    subbies <- grep("\\|", colnames(simmies), value=TRUE)
-    data.frame(apply(sss[, subbies], 2, funcy)) -> aaa
-
-
-    # Now, we're going to create our quantities of interest. This is going to create
-    #  a blank data frame (ys) that is as many rows as sss with as many columns as
-    #  there are unique values of y_levs.
-
-    ylabs <- paste0("y", y_levs)
-    data.frame(matrix(ncol= length(ylabs),
-                      nrow=nrow(sss),
-                      dimnames=list(NULL, ylabs))) -> ys
-
-    # This is kind of fun. To populate ys, the first/lowest values of ys is going to
-    # just be assigned from the first threshold we calculated. The second through
-    # the length(ylabs)-1 value is going to be the value from aaa minus the one
-    # before it. The last one is simply going to be 1 - whatever that is.
-
-    ys[1] <- aaa[1]
-    ncol_min1 <- ncol(aaa)
-
-    for(i in 2:ncol_min1) {
-        ys[i] <- aaa[i] - aaa[i-1]
 
     }
 
-    ys[ncol(ys)] <- 1 - aaa[ncol(aaa)]
-
-    if(original_scale == TRUE & the_link == "probit") {
-
-        ys <- apply(ys, 2, function(x) {qnorm(x)})
-    } else if(original_scale == TRUE & the_link == "logit") {
-
-        ys <- apply(ys, 2, function(x) {log(x / (1 - x))})
-    }
-
-    as_tibble(data.frame(sim = sss$sim, ys)) -> output
-
-
+    output <- output[c("sim", setdiff(names(output), "sim"))]
     return(output)
 
-
 }
+
