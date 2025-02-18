@@ -244,7 +244,7 @@ interval summarizing the distribution for women has a lower bound of
 <p><img src="linear-model_files/figure-html/unnamed-chunk-7-1.png" width="912"></p>
 </div>
 <div class="section level2">
-<h2 id="a-linear-model-with-interactive-effects">A Linear Model with Interactive Effects<a class="anchor" aria-label="anchor" href="#a-linear-model-with-interactive-effects"></a>
+<h2 id="interactive-effects">Interactive Effects<a class="anchor" aria-label="anchor" href="#interactive-effects"></a>
 </h2>
 <p>What if you were interested in an interactive relationship between
 age and gender? <code>{simqi}</code> is flexible with that as well.
@@ -337,7 +337,7 @@ post-processing.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>      0 -<span style="color: #BB0000;">28.2</span>     2    24</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>      0 -<span style="color: #BB0000;">27.2</span>     2    25</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 130 more rows</span></span></span></code></pre></div>
-<p>Now, let’s <code><a href="../reference/sim_qi.html">sim_qi()</a></code> do its thing.</p>
+<p>Now, let <code><a href="../reference/sim_qi.html">sim_qi()</a></code> do its thing.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">Sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_qi.html">sim_qi</a></span><span class="op">(</span><span class="va">M2</span>, nsim <span class="op">=</span> <span class="fl">100</span>, newdata <span class="op">=</span> <span class="va">newdat</span>, return_newdata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">Sims</span></span>
@@ -367,6 +367,7 @@ post-processing.</p>
 <span>    <span class="fu"><a href="http://svmiller.com/reference/theme_steve.html">theme_steve</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>alpha<span class="op">=</span><span class="fl">.2</span>, color<span class="op">=</span><span class="st">'black'</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">80</span>, by<span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Simulated Values of Political Trust, Interacting Gender and Age"</span>,</span>
 <span>         subtitle <span class="op">=</span> <span class="st">"Interaction terms can be wonky to interpret from the regression output. Simulate them to make sense of them!"</span>,</span>
 <span>         y <span class="op">=</span> <span class="st">"Simulated Values of Political Trust (with 90% Intervals)"</span>,</span>
@@ -374,6 +375,90 @@ post-processing.</p>
 <span>         color <span class="op">=</span> <span class="st">""</span>, linetype <span class="op">=</span> <span class="st">""</span>, fill <span class="op">=</span> <span class="st">""</span>,</span>
 <span>         caption <span class="op">=</span> <span class="st">"?som_sample in {simqi} (by way of SOM)."</span><span class="op">)</span></span></code></pre></div>
 <p><img src="linear-model_files/figure-html/unnamed-chunk-12-1.png" width="912"></p>
+</div>
+<div class="section level2">
+<h2 id="square-terms-and-the-like">Square Terms and the Like<a class="anchor" aria-label="anchor" href="#square-terms-and-the-like"></a>
+</h2>
+<p><code><a href="../reference/sim_qi.html">sim_qi()</a></code> works just fine with square terms you might
+include by way of the <code><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I()</a></code> function in base R. Here, let’s
+drop the interactive effect of interest and explore a hypothesis of a
+curvilinear relationship between age and political trust while
+partialing out the effects of the gender variable and the education
+category. You’d specify such a model like this, using the centered age
+variable we just created.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">M3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">lptrust</span> <span class="op">~</span> <span class="va">c_age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">c_age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">female</span> <span class="op">+</span> <span class="va">edu3</span>, <span class="va">Data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">M3</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = lptrust ~ c_age + I(c_age^2) + female + edu3, data = Data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span><span class="co">#&gt; -2.44710 -0.56710 -0.00501  0.64608  3.00883 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept) -7.110e-01  7.042e-02 -10.097  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; c_age        1.529e-03  9.815e-04   1.558    0.119    </span></span>
+<span><span class="co">#&gt; I(c_age^2)   2.334e-04  5.485e-05   4.256 2.15e-05 ***</span></span>
+<span><span class="co">#&gt; female       1.947e-01  3.368e-02   5.782 8.18e-09 ***</span></span>
+<span><span class="co">#&gt; edu3         2.294e-01  2.610e-02   8.786  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 0.8896 on 2836 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.04434,    Adjusted R-squared:  0.04299 </span></span>
+<span><span class="co">#&gt; F-statistic: 32.89 on 4 and 2836 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<p>The results suggest a potential non-linearity in age. At the least,
+the square term for age is statistically significant but the other term
+is not at any conventional threshold. However, what that means for
+inferential takeaways wouldn’t be so clear from the regression output.
+So, let’s use <code><a href="../reference/sim_qi.html">sim_qi()</a></code> to make sense of this. We’ll borrow
+the <code>newdat</code> data frame we created above, but subset them to
+just the women for ease of illustration. Then, let <code><a href="../reference/sim_qi.html">sim_qi()</a></code>
+do its thing.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">newdat</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">female</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="va">newdat</span></span>
+<span></span>
+<span><span class="va">Sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_qi.html">sim_qi</a></span><span class="op">(</span><span class="va">M3</span>, nsim <span class="op">=</span> <span class="fl">100</span>, newdata <span class="op">=</span> <span class="va">newdat</span>, return_newdata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">Sims</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 7,000 × 6</span></span></span>
+<span><span class="co">#&gt;         y   sim female c_age  edu3   age</span></span>
+<span><span class="co">#&gt;     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 0.225      1      1 -<span style="color: #BB0000;">36.2</span>     2    16</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 0.207      1      1 -<span style="color: #BB0000;">35.2</span>     2    17</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 0.191      1      1 -<span style="color: #BB0000;">34.2</span>     2    18</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 0.175      1      1 -<span style="color: #BB0000;">33.2</span>     2    19</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 0.159      1      1 -<span style="color: #BB0000;">32.2</span>     2    20</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 0.144      1      1 -<span style="color: #BB0000;">31.2</span>     2    21</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 0.130      1      1 -<span style="color: #BB0000;">30.2</span>     2    22</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 0.116      1      1 -<span style="color: #BB0000;">29.2</span>     2    23</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 0.102      1      1 -<span style="color: #BB0000;">28.2</span>     2    24</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 0.089<span style="text-decoration: underline;">5</span>     1      1 -<span style="color: #BB0000;">27.2</span>     2    25</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 6,990 more rows</span></span></span></code></pre></div>
+<p>Now, let’s summarize what we just did to make sense of what the
+regression model is telling us.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Sims</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>        <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>lwr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">.05</span><span class="op">)</span>,</span>
+<span>              mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>,</span>
+<span>              upr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">.95</span><span class="op">)</span>,</span>
+<span>              .by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">age</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">.</span>,<span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">mean</span>, ymin<span class="op">=</span><span class="va">lwr</span>, ymax<span class="op">=</span><span class="va">upr</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="http://svmiller.com/reference/theme_steve.html">theme_steve</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>     <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>alpha<span class="op">=</span><span class="fl">.2</span>, color<span class="op">=</span><span class="st">'black'</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">80</span>, by<span class="op">=</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Simulated Values of Age and Political Trust for Women"</span>,</span>
+<span>         subtitle <span class="op">=</span> <span class="st">"We got some indication of non-linearity in the model, but simulation tells us what it 'looks like'."</span>,</span>
+<span>         y <span class="op">=</span> <span class="st">"Simulated Values of Political Trust (with 90% Intervals)"</span>,</span>
+<span>         x <span class="op">=</span> <span class="st">""</span>,</span>
+<span>         color <span class="op">=</span> <span class="st">""</span>, linetype <span class="op">=</span> <span class="st">""</span>, fill <span class="op">=</span> <span class="st">""</span>,</span>
+<span>         caption <span class="op">=</span> <span class="st">"?som_sample in {simqi} (by way of SOM)."</span><span class="op">)</span></span></code></pre></div>
+<p><img src="linear-model_files/figure-html/unnamed-chunk-15-1.png" width="912"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

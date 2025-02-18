@@ -1,10 +1,10 @@
 ---
 title: "Simulating Quantities of Interest in a Linear Model"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{linear-model}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+#output: rmarkdown::html_vignette
+#vignette: >
+#  %\VignetteIndexEntry{linear-model}
+#  %\VignetteEngine{knitr::rmarkdown}
+#  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -93,7 +93,7 @@ Sims %>%
          caption = "?som_sample in {simqi} (by way of SOM).")
 ```
 
-## A Linear Model with Interactive Effects
+## Interactive Effects
 
 What if you were interested in an interactive relationship between age and gender? `{simqi}` is flexible with that as well. First, let's center the age variable by subtracting it from its mean. While it's not strictly necessary for identifying interactive relationships, it is really good practice to make sure there is a naturally occurring zero for all things being interacted. While there is no one with the mean age in the data (i.e. age can only be an integer), we've at least shifted zero from newborns (who won't appear in the data) to the center of the distribution.
 
@@ -129,7 +129,7 @@ Data %>%
 newdat
 ```
 
-Now, let's `sim_qi()` do its thing.
+Now, let `sim_qi()` do its thing.
 
 
 ```{r}
@@ -150,8 +150,51 @@ Sims %>%
     theme_steve() +
     geom_line() +
     geom_ribbon(alpha=.2, color='black') +
+    scale_x_continuous(breaks = seq(20, 80, by= 10)) +
     labs(title = "Simulated Values of Political Trust, Interacting Gender and Age",
          subtitle = "Interaction terms can be wonky to interpret from the regression output. Simulate them to make sense of them!",
+         y = "Simulated Values of Political Trust (with 90% Intervals)",
+         x = "",
+         color = "", linetype = "", fill = "",
+         caption = "?som_sample in {simqi} (by way of SOM).")
+```
+
+## Square Terms and the Like
+
+`sim_qi()` works just fine with square terms you might include by way of the `I()` function in base R. Here, let's drop the interactive effect of interest and explore a hypothesis of a curvilinear relationship between age and political trust while partialing out the effects of the gender variable and the education category. You'd specify such a model like this, using the centered age variable we just created.
+
+```{r}
+M3 <- lm(lptrust ~ c_age + I(c_age^2) + female + edu3, Data)
+summary(M3)
+```
+
+The results suggest a potential non-linearity in age. At the least, the square term for age is statistically significant but the other term is not at any conventional threshold. However, what that means for inferential takeaways wouldn't be so clear from the regression output. So, let's use `sim_qi()` to make sense of this. We'll borrow the `newdat` data frame we created above, but subset them to just the women for ease of illustration. Then, let `sim_qi()` do its thing.
+
+```{r}
+newdat %>%
+    filter(female == 1) -> newdat
+
+Sims <- sim_qi(M3, nsim = 100, newdata = newdat, return_newdata = TRUE)
+
+Sims
+
+```
+
+Now, let's summarize what we just did to make sense of what the regression model is telling us.
+
+```{r, fig.width=9.5, fig.height = 6}
+Sims %>%
+        summarize(lwr = quantile(y, .05),
+              mean = mean(y),
+              upr = quantile(y, .95),
+              .by = c(age)) %>%
+    ggplot(.,aes(age, mean, ymin=lwr, ymax=upr)) +
+    theme_steve() +
+     geom_line() +
+    geom_ribbon(alpha=.2, color='black') +
+    scale_x_continuous(breaks = seq(20, 80, by= 10)) +
+    labs(title = "Simulated Values of Age and Political Trust for Women",
+         subtitle = "We got some indication of non-linearity in the model, but simulation tells us what it 'looks like'.",
          y = "Simulated Values of Political Trust (with 90% Intervals)",
          x = "",
          color = "", linetype = "", fill = "",
