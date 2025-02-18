@@ -1,5 +1,9 @@
 url: http://svmiller.com
 template:
   bootstrap: 5
-  bootswatch: united
+  bootswatch: yeti
+  bslib:
+    base_font: {google: "Fira Sans"}
+    heading_font: {google: "Fira Sans"}
+    code_font: {google: "Fira Mono"}
 
