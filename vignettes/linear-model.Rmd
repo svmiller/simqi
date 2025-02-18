@@ -93,3 +93,67 @@ Sims %>%
          caption = "?som_sample in {simqi} (by way of SOM).")
 ```
 
+## A Linear Model with Interactive Effects
+
+What if you were interested in an interactive relationship between age and gender? `{simqi}` is flexible with that as well. First, let's center the age variable by subtracting it from its mean. While it's not strictly necessary for identifying interactive relationships, it is really good practice to make sure there is a naturally occurring zero for all things being interacted. While there is no one with the mean age in the data (i.e. age can only be an integer), we've at least shifted zero from newborns (who won't appear in the data) to the center of the distribution.
+
+```{r}
+som_sample %>%
+    mutate(c_age = age - mean(age)) -> Data
+
+M2 <- lm(lptrust ~ c_age*female + edu3, Data)
+summary(M2)
+```
+
+The results of this simple model suggest that 1) higher levels of age coincide with more political trust among those that are not women, 2) women of the average age have higher levels of political trust than non-women, and 3) there is indeed a statistically significant interaction between age and gender.
+
+But what does that "look like"? Here, `sim_qi()` comes to the rescue. Let's create another `newdata` data frame, but this one where we also allow the age variable to take on all unique values (to approximate the full range of age).
+
+```{r}
+Data %>%
+    data_grid(.model = M2,
+              female = c(0, 1),
+              c_age = unique(c_age)) -> newdat
+
+newdat
+```
+
+Admittedly, getting used to transformed variables like this can be wonky if you're new. So, let's get the actual age equivalents for `c_age` just to have that information handy for post-processing.
+
+
+```{r}
+Data %>%
+    distinct(c_age, age) %>% arrange(age) %>%
+    left_join(newdat, .) -> newdat
+
+newdat
+```
+
+Now, let's `sim_qi()` do its thing.
+
+
+```{r}
+Sims <- sim_qi(M2, nsim = 100, newdata = newdat, return_newdata = TRUE)
+Sims
+```
+
+And summarize accordingly....
+
+```{r, fig.width=9.5, fig.height = 6}
+Sims %>%
+    mutate(cat = ifelse(female == 1, "Women", "Not Women")) %>%
+        summarize(lwr = quantile(y, .05),
+              mean = mean(y),
+              upr = quantile(y, .95),
+              .by = c(cat, age)) %>%
+    ggplot(.,aes(age, mean, ymin=lwr, ymax=upr, color=cat, linetype=cat, fill=cat)) +
+    theme_steve() +
+    geom_line() +
+    geom_ribbon(alpha=.2, color='black') +
+    labs(title = "Simulated Values of Political Trust, Interacting Gender and Age",
+         subtitle = "Interaction terms can be wonky to interpret from the regression output. Simulate them to make sense of them!",
+         y = "Simulated Values of Political Trust (with 90% Intervals)",
+         x = "",
+         color = "", linetype = "", fill = "",
+         caption = "?som_sample in {simqi} (by way of SOM).")
+```
