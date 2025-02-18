@@ -2,7 +2,7 @@
 #' @noRd
 #'
 
-.sim_qi.clm <- function(mod, nsim = 1000, newdata, original_scale = TRUE) {
+.sim_qi.clm <- function(mod, nsim = 1000, newdata, original_scale = TRUE, vcov = NULL) {
 
     # Basic stops, for now ----
 
@@ -34,16 +34,22 @@
             newdata[[dv]] <- rep(0, nrow(newdata))
 
         }
-
-
     }
 
     modmat <- model.matrix(terms(mod), newdata)
     modmat <- modmat[, !grepl("Intercept", colnames(modmat))] # remove intercept from thingie
 
+    # If you have a custom vcov, declare it now... ---
+
+    if(is.null(vcov)) {
+        svcov <- vcov(mod)
+    } else {
+        svcov <- vcov
+    }
+
 
     # Simulate the important stuff ----
-    Sims <- smvrnorm(nsim, coef(mod), vcov(mod))
+    Sims <- smvrnorm(nsim, coef(mod), svcov)
 
     cnSims <- colnames(Sims)
     simA <- Sims[, grepl("\\|", cnSims)]

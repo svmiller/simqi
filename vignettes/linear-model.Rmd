@@ -1,0 +1,95 @@
+---
+title: "Simulating Quantities of Interest in a Linear Model"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{linear-model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(tidyverse)
+library(stevemisc)
+library(modelr)
+library(simqi)
+library(stevethemes)
+
+set.seed(8675309) # Jenny, I got your number...
+```
+
+## A (Brief) Description of the Data
+
+`som_sample` is a subset of [the SOM surveys in Sweden](https://www.gu.se/en/som-institute/the-som-surveys). It is the Swedish corollary to the General Social Survey in the United States and offers a wide-reaching assessment of Swedish public opinion about various aspects of society, politics, and mass media. Deep knowledge about Sweden is not required for this tutorial though some kind of comfort with modeling public opinion data is assumed.
+
+```{r}
+som_sample
+```
+
+## A Simple Linear Model with No Frills
+
+Let's run a simple linear model regressing a respondent's latent political trust (`lptrust`) on their age (`age`, in years), whether they self-identify as a woman or not (`female`), and their educational attainment (`edu3`) into "low" (1), "medium" (2), or "high" (3) categories. [The codebook](https://svmiller.com/simqi/reference/som_sample.html) offers more information about how the political trust variable is created. Understand, for now, that higher values in `lptrust` = "more" political trust and the variable approximates a standard normal distribution.
+
+Let's use the `lm()` to regress political trust on those three things.
+
+```{r}
+M1 <- lm(lptrust ~ age + female + edu3, som_sample)
+summary(M1)
+```
+
+We find no discernible effect of age on political trust. Partialing out gender and education, young and old are not discernibly different in their latent political trust. The effect of `female` and `edu3` is positive and significant.
+
+What if we wanted to unpack that gender difference further. `data_grid()` in `{modelr}` can help us by creating a hypothetical prediction grid based on the data and the model, generating a hypothetical person with the median age (54) and educational attainment ("medium"). This hypothetical person will differ only in their gender. One is a woman and the other is not.
+
+```{r}
+som_sample %>%
+    data_grid(.model = M1,
+              female = c(0, 1)) -> newdat
+
+newdat
+```
+
+
+`sim_qi()` will take the model (`M1`) and the prediction grid we created above as "new data" and simulate some `nsim` values of the dependent variable (default: 1000) from the model's vector of coefficients and the variance-covariance matrix. We can optionally toggle `return_newdata = TRUE` to help us with post-processing.
+
+```{r}
+Sims <- sim_qi(M1, nsim = 100, newdata = newdat, return_newdata = TRUE)
+Sims
+```
+
+The simulated values of latent political trust are returned as a column called `y` in the `Sims` object we created. From there, we can summarize these simulated values of political trust comparing men and women like this.
+
+```{r}
+Sims %>%
+    summarize(lwr = quantile(y, .05),
+              mean = mean(y),
+              upr = quantile(y, .95),
+              .by = female)
+```
+
+There are certainly fancier summary techniques available, especially visually, but the fundamental takeaway suggests that the mean simulated values of political trust for this "typical woman" is .032 whereas it is -.168 for this "typical man". That's a difference of about .20 on this scale. If there were truly no differences between men and women in their expected values of political trust, the simulations betray that. A 90% interval summarizing the distribution for women has a lower bound of -.011. The upper bound for men -.128. The two do not overlap.
+
+```{r, fig.width=9.5, fig.height = 6}
+Sims %>%
+    summarize(lwr = quantile(y, .05),
+              mean = mean(y),
+              upr = quantile(y, .95),
+              .by = female) %>%
+    mutate(cat = c("Men", "Women")) %>%
+    ggplot(.,aes(cat, mean, ymin=lwr, ymax=upr)) +
+    theme_steve() +
+    geom_pointrange() +
+    coord_flip() +
+    labs(y = "Simulated Values of Political Trust (with 90% Intervals)",
+         x = "",
+         title = "Simulated Values of Latent Political Trust, by Men and Women",
+         subtitle = "A visual summary better emphasizes what the model communicates, and what the simulations are telling you.",
+         caption = "?som_sample in {simqi} (by way of SOM).")
+```
+

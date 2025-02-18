@@ -103,29 +103,29 @@ probit index, if that is what you say you want.
 Specifying a variable in \code{newdata} with the exact same name as the
 dependent variable (e.g. \code{mpg} in the simple example provided in this
 documentation file) is necessary for matrix multiplication purposes. The
-function will do that for you if you have not done it yourself. It'll be set
-by default to 0. It does not (should not?) matter for the simulations.
+function will do that for you if you have not done it yourself. I recommend
+letting this function do that for you. For matrix multiplication purposes,
+this column this function creates will have a default of 0. It does not
+(should not?) matter for the simulations.
 
-If you set \code{return_newdata} to \code{TRUE}, you should not interpret the column
-matching the name of the dependent variable as communicating the kind of
-information you want from this function. That particular column is just a
-simple placeholder you need for matrix multiplication. The information you
-want will always be in a column (or columns) named (or starting with) \code{y}.
-
-I do not advise setting \code{return_newdata} to \code{TRUE} without providing a data
-frame in \code{newdata} that corresponds with a hypothetical prediction grid. If
-nothing is supplied in \code{newdata}, \code{model.frame()} is called and the
-simulations are run on the data that inform the model itself.
+If nothing is supplied in \code{newdata}, \code{model.frame()} is called and the
+simulations are run on the data that inform the model itself. I don't
+recommend this, but it works for debugging purposes.
 
 This function builds in an implicit assumption that your dependent variable
-in the regression model is not called \code{y}.
+in the regression model is not called \code{y}. Nothing about this function will
+misbehave (as far as I know) if your dependent variable is called \code{y} in the
+model, but it may lead to some confusion in how you interpret the results of
+the simulations. The simulated values are always returned as a column called
+\code{y}.
 
-Factors (so-called "fixed effects") behave curiously in this function. For
-just one factor variable in the model, the prediction grid you create must, at
-a minimum, have the default/baseline category as the value for the factor in
-question. For the presence of multiple factors, it seems like you need all
-possible combinations of them (even if you don't want them). Future updates
-will try to better understand this behavior.
+Factors (so-called "fixed effects") behave curiously in this function. For now,
+this function will politely assume your factors are \emph{all} present in the
+\code{newdata} you create (even if you don't want them). Future updates
+will try to understand this behavior better. The only loss here is the
+efficiency of the simulation procedure, especially if you are not interested
+in simulated values of the dependent variable for particular combinations of
+the factor variable.
 }
 }
 
@@ -133,22 +133,9 @@ will try to better understand this behavior.
 
 set.seed(8675309)
 
-Data <- mtcars
-Data$region <- c("Japan", "Japan", "Japan",
-                 "USA", "USA", "USA", "USA",
-                 "Europe", "Europe", "Europe", "Europe",
-                 "Europe", "Europe", "Europe",
-                 "USA", "USA", "USA", "Europe",
-                 "Japan", "Japan", "Japan",
-                 "USA", "USA", "USA", "USA",
-                 "Europe", "Europe", "Europe",
-                 "USA", "Europe", "Europe", "Europe")
+M1 <- lm(mpg ~ hp + am, mtcars)
 
-M1 <- lm(mpg ~ hp + region, Data)
-
-sim_qi(M1, 10)
-
-newdat <- data.frame(mpg = 0, region = c("Europe", "Japan", "USA"), hp = 123)
+newdat <- data.frame(am = c(0,1), hp = 123)
 
 sim_qi(M1, nsim = 100, newdat, return_newdata = TRUE)
 

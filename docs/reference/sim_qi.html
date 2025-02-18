@@ -18,6 +18,10 @@ from a regression model"></head><body>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/linear-model.html">Simulating Quantities of Interest in a Linear Model</a></li>
+  </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
@@ -142,25 +146,26 @@ probit index, if that is what you say you want.</p>
 <p>Specifying a variable in <code>newdata</code> with the exact same name as the
 dependent variable (e.g. <code>mpg</code> in the simple example provided in this
 documentation file) is necessary for matrix multiplication purposes. The
-function will do that for you if you have not done it yourself. It'll be set
-by default to 0. It does not (should not?) matter for the simulations.</p>
-<p>If you set <code>return_newdata</code> to <code>TRUE</code>, you should not interpret the column
-matching the name of the dependent variable as communicating the kind of
-information you want from this function. That particular column is just a
-simple placeholder you need for matrix multiplication. The information you
-want will always be in a column (or columns) named (or starting with) <code>y</code>.</p>
-<p>I do not advise setting <code>return_newdata</code> to <code>TRUE</code> without providing a data
-frame in <code>newdata</code> that corresponds with a hypothetical prediction grid. If
-nothing is supplied in <code>newdata</code>, <code><a href="https://rdrr.io/r/stats/model.frame.html" class="external-link">model.frame()</a></code> is called and the
-simulations are run on the data that inform the model itself.</p>
+function will do that for you if you have not done it yourself. I recommend
+letting this function do that for you. For matrix multiplication purposes,
+this column this function creates will have a default of 0. It does not
+(should not?) matter for the simulations.</p>
+<p>If nothing is supplied in <code>newdata</code>, <code><a href="https://rdrr.io/r/stats/model.frame.html" class="external-link">model.frame()</a></code> is called and the
+simulations are run on the data that inform the model itself. I don't
+recommend this, but it works for debugging purposes.</p>
 <p>This function builds in an implicit assumption that your dependent variable
-in the regression model is not called <code>y</code>.</p>
-<p>Factors (so-called "fixed effects") behave curiously in this function. For
-just one factor variable in the model, the prediction grid you create must, at
-a minimum, have the default/baseline category as the value for the factor in
-question. For the presence of multiple factors, it seems like you need all
-possible combinations of them (even if you don't want them). Future updates
-will try to better understand this behavior.</p>
+in the regression model is not called <code>y</code>. Nothing about this function will
+misbehave (as far as I know) if your dependent variable is called <code>y</code> in the
+model, but it may lead to some confusion in how you interpret the results of
+the simulations. The simulated values are always returned as a column called
+<code>y</code>.</p>
+<p>Factors (so-called "fixed effects") behave curiously in this function. For now,
+this function will politely assume your factors are <em>all</em> present in the
+<code>newdata</code> you create (even if you don't want them). Future updates
+will try to understand this behavior better. The only loss here is the
+efficiency of the simulation procedure, especially if you are not interested
+in simulated values of the dependent variable for particular combinations of
+the factor variable.</p>
 </div>
 
     </div>
@@ -170,52 +175,25 @@ will try to better understand this behavior.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8675309</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">Data</span> <span class="op">&lt;-</span> <span class="va">mtcars</span></span></span>
-<span class="r-in"><span><span class="va">Data</span><span class="op">$</span><span class="va">region</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Japan"</span>, <span class="st">"Japan"</span>, <span class="st">"Japan"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"USA"</span>, <span class="st">"USA"</span>, <span class="st">"USA"</span>, <span class="st">"USA"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"Europe"</span>, <span class="st">"Europe"</span>, <span class="st">"Europe"</span>, <span class="st">"Europe"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"Europe"</span>, <span class="st">"Europe"</span>, <span class="st">"Europe"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"USA"</span>, <span class="st">"USA"</span>, <span class="st">"USA"</span>, <span class="st">"Europe"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"Japan"</span>, <span class="st">"Japan"</span>, <span class="st">"Japan"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"USA"</span>, <span class="st">"USA"</span>, <span class="st">"USA"</span>, <span class="st">"USA"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"Europe"</span>, <span class="st">"Europe"</span>, <span class="st">"Europe"</span>,</span></span>
-<span class="r-in"><span>                 <span class="st">"USA"</span>, <span class="st">"Europe"</span>, <span class="st">"Europe"</span>, <span class="st">"Europe"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">M1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">am</span>, <span class="va">mtcars</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">M1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">region</span>, <span class="va">Data</span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="fu">sim_qi</span><span class="op">(</span><span class="va">M1</span>, <span class="fl">10</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 320 × 2</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        y   sim</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  23.7     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  23.7     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  24.3     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  19.1     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  16.6     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  19.3     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  14.0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  25.0     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  23.8     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  22.8     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 310 more rows</span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">newdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>mpg <span class="op">=</span> <span class="fl">0</span>, region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Europe"</span>, <span class="st">"Japan"</span>, <span class="st">"USA"</span><span class="op">)</span>, hp <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">newdat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>am <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span>, hp <span class="op">=</span> <span class="fl">123</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">sim_qi</span><span class="op">(</span><span class="va">M1</span>, nsim <span class="op">=</span> <span class="fl">100</span>, <span class="va">newdat</span>, return_newdata <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 300 × 5</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        y   sim   mpg region    hp</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  21.6     1     0 Europe   123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  26.1     1     0 Japan    123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  19.4     1     0 USA      123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  22.4     2     0 Europe   123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  20.1     2     0 Japan    123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  19.3     2     0 USA      123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  22.9     3     0 Europe   123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  24.3     3     0 Japan    123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  19.7     3     0 USA      123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  22.5     4     0 Europe   123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 290 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 200 × 4</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        y   sim    am    hp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>  18.9     1     0   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>  25.0     1     1   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>  19.3     2     0   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>  24.4     2     1   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>  20.5     3     0   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>  25.5     3     1   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>  18.9     4     0   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>  26.2     4     1   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>  20.2     5     0   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>  24.2     5     1   123</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 190 more rows</span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
