@@ -115,7 +115,7 @@
 #'
 #' sim_qi(M1, nsim = 100, newdat, return_newdata = TRUE)
 #'
-#' @importFrom stevemisc smvrnorm
+#' @importFrom MASS mvrnorm
 #' @importFrom methods is
 #' @importFrom tibble as_tibble tibble
 #' @importFrom stats coef model.frame model.matrix plogis pnorm qnorm rchisq terms vcov
@@ -169,6 +169,15 @@ sim_qi <- function(mod, nsim = 1000, newdata, original_scale = TRUE, return_newd
         the_sims <- .sim_qi.clm(mod, nsim, newdata, original_scale, vcov)
 
     }
+
+
+    # class: logistf -----
+    if(is(mod, "logistf")) {
+
+        the_sims <- .sim_qi.logistf(mod, nsim, newdata, original_scale, vcov)
+
+    }
+
 
     if(missing(newdata)) {
         newdata <- model.frame(mod)

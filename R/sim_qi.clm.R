@@ -49,7 +49,7 @@
 
 
     # Simulate the important stuff ----
-    Sims <- smvrnorm(nsim, coef(mod), svcov)
+    Sims <- mvrnorm(nsim, coef(mod), svcov)
 
     cnSims <- colnames(Sims)
     simA <- Sims[, grepl("\\|", cnSims)]

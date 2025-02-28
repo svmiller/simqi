@@ -1,15 +1,7 @@
 #' @keywords internal
 #' @noRd
 
-.sim_qi.glm <- function(mod, nsim = 1000, newdata, original_scale = TRUE, vcov = NULL) {
-
-
-    fam <- mod$family$family
-    the_link <- mod$family$link
-
-    if(!(fam %in% c("binomial", "poisson"))) {
-        stop("This function currently supports glm() functions where the family is binomial (logit, probit) or poisson (log). Feel free to raise an issue on the project's Github to extend this function forward.")
-    }
+.sim_qi.logistf <- function(mod, nsim = 1000, newdata, original_scale = TRUE, vcov = NULL) {
 
     # Fill in newdata  ----
     dv <- all.vars(mod$call)[1]
@@ -35,9 +27,6 @@
 
     mvrnorm(nsim, coef(mod), svcov) -> sim_params
 
-    # if(missing(newdata)) {
-    #     newdata <- model.frame(mod)
-    # }
 
     modmat <- model.matrix(terms(mod), newdata)
 
@@ -57,14 +46,9 @@
     }
 
     if(original_scale == FALSE) {
-        if(fam == "binomial" && the_link == "logit") {
-            output$y <- plogis(output$y)
-        } else if(fam == "binomial" && the_link == "probit") {
-            output$y <- pnorm(output$y) # returns probability
-        } else if(fam == "poisson" && the_link == "log") {
-            output$y <- exp(output$y) # exponentiates logged lambda
 
-        }
+        output$y <- plogis(output$y)
+
 
     } else { # original_scale == TRUE, don't do anything...
 

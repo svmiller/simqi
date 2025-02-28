@@ -36,7 +36,7 @@ nobs <- summary(mod)$df[1] + summary(mod)$df[2]
 k <- summary(mod)$df[1]
 
 siggies*sqrt((nobs-k)/rchisq(nsim,nobs-k))
-list(a = smvrnorm(nsim, coef(mod), svcov),
+list(a = mvrnorm(nsim, coef(mod), svcov),
      b = siggies*sqrt((nobs-k)/rchisq(nsim,nobs-k))) -> sim_params
 
 
