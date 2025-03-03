@@ -70,6 +70,7 @@
 #' | `glm()`| poisson(link='log') | logged lambda | lambda |
 #' | `clm()`| link = 'logit' | natural logged odds of *y* = value *j* | probability of *y* = value *j* |
 #' | `clm()`| link = 'probit' | probit index of *y* = value *j* | probability of *y* = value *j* |
+#' | `logistf()`| NA | natural logged odds of *y* = 1 | probability of *y* = 1 |
 #'
 #' For ordinal models, I recommend setting `original_scale` to be FALSE. The
 #' function, underneath the hood, is actually calculating things on the level of
