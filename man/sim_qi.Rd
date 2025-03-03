@@ -89,6 +89,7 @@ respect to what you want.\tabular{cccc}{
    \code{glm()} \tab poisson(link='log') \tab logged lambda \tab lambda \cr
    \code{clm()} \tab link = 'logit' \tab natural logged odds of \emph{y} = value \emph{j} \tab probability of \emph{y} = value \emph{j} \cr
    \code{clm()} \tab link = 'probit' \tab probit index of \emph{y} = value \emph{j} \tab probability of \emph{y} = value \emph{j} \cr
+   \code{logistf()} \tab NA \tab natural logged odds of \emph{y} = 1 \tab probability of \emph{y} = 1 \cr
 }
 
 
